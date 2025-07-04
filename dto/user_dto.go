@@ -10,6 +10,15 @@ type RegisterResp struct {
 	Full_name string
 }
 
+type RegisterReq struct {
+	Email    string
+	Password string
+	Name     string
+}
+type LoginResp struct {
+	Token string `json:"token"`
+}
+
 type TopUpReq struct {
 	Balance int `json:"balance"`
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"main/dto"
 	"main/model"
+	"main/utils"
 	"strings"
 	"time"
 
@@ -37,8 +38,11 @@ func (r *orderRepository) CreateOrder(user_id int, o dto.OrderReq) (model.Orders
 	r.db.Where("book_id=?", o.Book_id).First(&book)
 
 	err := r.db.Create(&order).Error
+	if err != nil {
+		return model.Orders{}, 0, err
+	}
 	amount := book.Price_per_day * o.Total_days
-	return order, amount, err
+	return order, amount, nil
 }
 
 func (r *orderRepository) CreatePayments(user_id int, order_id int) (model.Payments, error) {
@@ -54,7 +58,7 @@ func (r *orderRepository) CreatePayments(user_id int, order_id int) (model.Payme
 	}
 
 	if o.User_id != user_id {
-		return model.Payments{}, fmt.Errorf("unauthorized")
+		return model.Payments{}, utils.ErrUnauthorized
 	}
 
 	r.db.Where("book_id", o.Book_id).First(&b)
@@ -63,7 +67,7 @@ func (r *orderRepository) CreatePayments(user_id int, order_id int) (model.Payme
 	rent_cost := b.Price_per_day * o.TotalDays
 
 	if u.TotalBalance < rent_cost {
-		return model.Payments{}, fmt.Errorf("balance not enough, please top up your balance")
+		return model.Payments{}, utils.ErrBadReq
 	}
 
 	p.Order_id = order_id
@@ -72,7 +76,11 @@ func (r *orderRepository) CreatePayments(user_id int, order_id int) (model.Payme
 
 	err = r.db.Create(&p).Error
 
-	return model.Payments{}, err
+	if err != nil {
+		return model.Payments{}, err
+	}
+
+	return model.Payments{}, nil
 }
 
 func (r *orderRepository) PaymentMidtrans(user_id int, m dto.MidtransReq) (model.Users, model.Payments, error) {
@@ -84,7 +92,7 @@ func (r *orderRepository) PaymentMidtrans(user_id int, m dto.MidtransReq) (model
 
 	err := r.db.Where("user_id=?", user_id).First(&u).Error
 	if err != nil {
-		return model.Users{}, model.Payments{}, err
+		return model.Users{}, model.Payments{}, utils.ErrUnauthorized
 	}
 
 	err = r.db.Create(&p).Error
@@ -98,7 +106,7 @@ func (r *orderRepository) UpdatePaymentMidtrans(payment_id int, message string) 
 	status_msg := strings.ToLower(message)
 	fmt.Println(status_msg)
 	if !strings.Contains(status_msg, "success") {
-		return fmt.Errorf("payment not finish yet")
+		return utils.ErrBadReq
 	}
 
 	err := r.db.Model(&p).Where("payment_id=?", payment_id).Update("status", "paid").Error

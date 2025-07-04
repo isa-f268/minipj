@@ -9,6 +9,8 @@ import (
 	"main/service"
 	"os"
 
+	_ "main/docs"
+
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	echoSwagger "github.com/swaggo/echo-swagger"
@@ -32,7 +34,6 @@ import (
 // @securityDefinitions.apikey BearerAuth
 // @in header
 // @name Authorization
-
 func main() {
 	godotenv.Load()
 	db := config.DBInit()
@@ -45,7 +46,7 @@ func main() {
 	orderHandler := handler.NewOrderHandler(orderService)
 
 	e := echo.New()
-	e.HTTPErrorHandler = handler.CustomHTTPErrorHandler
+	e.HTTPErrorHandler = handler.ErrorHandler
 
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 	//users

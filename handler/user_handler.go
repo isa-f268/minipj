@@ -26,15 +26,16 @@ func NewUserHandler(serv service.UserService) *UserHandler {
 // @Tags         User
 // @Accept     	 json
 // @Produce      json
-// @Param      	 data body model.Users true "User Data"
+// @Param      	 data body dto.RegisterReq true "User Data"
 // @Success      201   {object} helper.RegisterResp
 // @Failure      401   {object} dto.ErrorResponse
+// @Failure      400   {object} dto.ErrorResponse
 // @Router       /api/users/register [post]
 func (h *UserHandler) RegisterUser(c echo.Context) error {
 	var u model.Users
 
 	if err := c.Bind(&u); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return err
 	}
 
 	hashed, _ := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
@@ -42,23 +43,34 @@ func (h *UserHandler) RegisterUser(c echo.Context) error {
 	u.Password = string(hashed)
 	user, err := h.serv.Register(u)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return err
 	}
 
 	res := helper.RespHelper("register user success", user)
 	return c.JSON(http.StatusCreated, res)
 }
 
+// POST /api/users/login
+// @Summary      Login User
+// @Description  Login user, get token
+// @Tags         User
+// @Accept     	 json
+// @Produce      json
+// @Param      	 data body dto.LoginReq true "User Data"
+// @Success      201   {object} helper.LoginResp
+// @Failure      401   {object} dto.ErrorResponse
+// @Failure      400   {object} dto.ErrorResponse
+// @Router       /api/users/login [post]
 func (h *UserHandler) LoginUser(c echo.Context) error {
 	var u dto.LoginReq
 	if err := c.Bind(&u); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return err
 	}
 
 	resp, err := h.serv.Login(u)
 
 	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Email atau password salah")
+		return err
 	}
 
 	token := map[string]string{"token": resp}
@@ -67,19 +79,30 @@ func (h *UserHandler) LoginUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
+// POST /api/users/topup
+// @Summary      Topup User
+// @Description  Topup isi saldo
+// @Tags         User
+// @Accept     	 json
+// @Produce      json
+// @Param      	 data body dto.TopUpReq true "User Data"
+// @Success      201   {object} dto.TopUpResp
+// @Failure      401   {object} dto.ErrorResponse
+// @Failure      400   {object} dto.ErrorResponse
+// @Router       /api/users/topup [post]
 func (h *UserHandler) TopUp(c echo.Context) error {
 	var t dto.TopUpReq
 
 	user_id := c.Get("id").(int)
 
 	if err := c.Bind(&t); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return err
 	}
 
 	top, err := h.serv.TopUp(user_id, t)
 
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return err
 	}
 
 	res := helper.RespHelper("top up berhasil", top)
@@ -87,11 +110,21 @@ func (h *UserHandler) TopUp(c echo.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
+// GET /api/users/book
+// @Summary      Topup User
+// @Description  Topup isi saldo
+// @Tags         User
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200   {array}	model.Books
+// @Failure      401   {object} dto.ErrorResponse
+// @Failure      400   {object} dto.ErrorResponse
+// @Router       /api/users/book [get]
 func (h *UserHandler) GetBook(c echo.Context) error {
 
 	book, err := h.serv.GetBook()
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return err
 	}
 
 	resp := helper.RespHelper("get book sukses", book)
@@ -102,7 +135,7 @@ func (h *UserHandler) GetBook(c echo.Context) error {
 func (h *UserHandler) GetInterBooks(c echo.Context) error {
 	resp, err := utils.GetInterNationalBooks()
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		return err
 	}
 
 	return c.JSON(http.StatusOK, resp)

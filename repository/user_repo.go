@@ -1,10 +1,10 @@
 package repository
 
 import (
-	"fmt"
 	"main/dto"
 	"main/helper"
 	"main/model"
+	"main/utils"
 	"time"
 
 	"gorm.io/gorm"
@@ -28,20 +28,27 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 func (r *userRepository) Register(user model.Users) (dto.RegisterResp, error) {
 	var resp dto.RegisterResp
 	err := r.db.Create(&user).Error
+	if err != nil {
+		return resp, err
+	}
 	resp.Email = user.Email
 	resp.Full_name = user.Name
-	return resp, err
+	return resp, nil
 }
 
 func (r *userRepository) Login(user dto.LoginReq) (string, error) {
 	var u model.Users
 
-	res := r.db.Where("email=?", user.Email).First(&u).Error
-
-	err := helper.CheckPassword(u.Password, user.Password)
+	err := r.db.Where("email=?", user.Email).First(&u).Error
 
 	if err != nil {
-		return "", fmt.Errorf("invalid, wrong password")
+		return "", utils.ErrUserNotFound
+	}
+
+	err = helper.CheckPassword(u.Password, user.Password)
+
+	if err != nil {
+		return "", utils.ErrUnauthorized
 	}
 
 	data := helper.Login{
@@ -52,10 +59,10 @@ func (r *userRepository) Login(user dto.LoginReq) (string, error) {
 	token, err := helper.CreateJwt(data)
 
 	if err != nil {
-		return "", fmt.Errorf("internal server error")
+		return "", err
 	}
 
-	return token, res
+	return token, nil
 }
 
 func (r *userRepository) TopUp(id int, balance dto.TopUpReq) (dto.TopUpResp, error) {
@@ -81,7 +88,11 @@ func (r *userRepository) TopUp(id int, balance dto.TopUpReq) (dto.TopUpResp, err
 		return dto.TopUpResp{}, err
 	}
 
-	r.db.Where("user_id=?", id).First(&u)
+	err = r.db.Where("user_id=?", id).First(&u).Error
+
+	if err != nil {
+		return dto.TopUpResp{}, utils.ErrUserNotFound
+	}
 
 	resp.Balance = balance.Balance
 	resp.Total_balance = u.TotalBalance

@@ -1,0 +1,250 @@
+basePath: /
+definitions:
+  dto.ErrorResponse:
+    properties:
+      code:
+        type: string
+      details: {}
+      message:
+        type: string
+      status:
+        type: integer
+    type: object
+  dto.LoginReq:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  dto.LoginResp:
+    properties:
+      token:
+        type: string
+    type: object
+  dto.RegisterReq:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    type: object
+  dto.RegisterResp:
+    properties:
+      email:
+        type: string
+      full_name:
+        type: string
+    type: object
+  dto.TopUpReq:
+    properties:
+      balance:
+        type: integer
+    type: object
+  dto.TopUpResp:
+    properties:
+      balance:
+        type: integer
+      date:
+        type: string
+      total:
+        type: integer
+    type: object
+  helper.LoginResp:
+    properties:
+      data:
+        $ref: '#/definitions/dto.LoginResp'
+      message:
+        type: string
+    type: object
+  helper.RegisterResp:
+    properties:
+      data:
+        $ref: '#/definitions/dto.RegisterResp'
+      message:
+        type: string
+    type: object
+  model.Books:
+    properties:
+      book_id:
+        type: integer
+      category:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+      orders:
+        items:
+          $ref: '#/definitions/model.Orders'
+        type: array
+      price_per_day:
+        type: integer
+    type: object
+  model.Orders:
+    properties:
+      book_id:
+        type: integer
+      finished:
+        type: boolean
+      order_id:
+        type: integer
+      payment:
+        $ref: '#/definitions/model.Payments'
+      rent_date:
+        type: string
+      total_days:
+        type: integer
+      user_id:
+        type: integer
+    type: object
+  model.Payments:
+    properties:
+      amount:
+        type: integer
+      created_at:
+        type: string
+      order_id:
+        type: integer
+      payment_id:
+        type: integer
+      status:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@wapp.local
+    name: wapp
+    url: http://wapp.support.local
+  description: API untuk aplikasi book rent
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Book Rent App
+  version: "1.0"
+paths:
+  /api/users/book:
+    get:
+      description: Topup isi saldo
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Books'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Topup User
+      tags:
+      - User
+  /api/users/login:
+    post:
+      consumes:
+      - application/json
+      description: Login user, get token
+      parameters:
+      - description: User Data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/helper.LoginResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Login User
+      tags:
+      - User
+  /api/users/register:
+    post:
+      consumes:
+      - application/json
+      description: Register user baru app
+      parameters:
+      - description: User Data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RegisterReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/helper.RegisterResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Register User
+      tags:
+      - User
+  /api/users/topup:
+    post:
+      consumes:
+      - application/json
+      description: Topup isi saldo
+      parameters:
+      - description: User Data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.TopUpReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.TopUpResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Topup User
+      tags:
+      - User
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
