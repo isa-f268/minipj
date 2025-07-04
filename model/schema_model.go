@@ -9,8 +9,9 @@ type Users struct {
 	Name         string `json:"name"`
 	TotalBalance int    `gorm:"default:0" json:"total_balance"`
 
-	Topups []Topup  `gorm:"foreignKey:User_id" json:"topups,omitempty"`
-	Orders []Orders `gorm:"foreignKey:User_id" json:"orders,omitempty"`
+	Topups   []Topup    `gorm:"foreignKey:User_id" json:"topups,omitempty"`
+	Orders   []Orders   `gorm:"foreignKey:User_id" json:"orders,omitempty"`
+	Payments []Payments `gorm:"foreignKey:User_id" json:"payment,omitempty"`
 }
 
 type Books struct {
@@ -44,6 +45,7 @@ type Orders struct {
 type Payments struct {
 	Payment_id uint      `gorm:"primaryKey" json:"payment_id"`
 	Order_id   int       `gorm:"unique;not null" json:"order_id"`
+	User_id    int       `gorm:"unique;not null" json:"user_id"`
 	Amount     int       `gorm:"not null" json:"amount"`
 	CreatedAt  time.Time `json:"created_at"`
 	Status     string    `gorm:"default:false" json:"status"`

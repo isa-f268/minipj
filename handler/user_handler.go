@@ -140,3 +140,15 @@ func (h *UserHandler) GetInterBooks(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, resp)
 }
+
+func (h *UserHandler) GetPaymentDetails(c echo.Context) error {
+	user_id := c.Get("id").(int)
+
+	payment, err := h.serv.GetPaymentDetails(user_id)
+
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, payment)
+}

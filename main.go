@@ -53,6 +53,7 @@ func main() {
 	e.POST("/api/users/register", userHandler.RegisterUser)
 	e.POST("/api/users/login", userHandler.LoginUser)
 	e.POST("/api/users/topup", userHandler.TopUp, middleware.AuthMiddleware)
+	e.GET("/api/users/payment-detail", userHandler.GetPaymentDetails, middleware.AuthMiddleware)
 	e.GET("/api/users/book", userHandler.GetBook, middleware.AuthMiddleware)
 	e.GET("/api/users/interbook", userHandler.GetInterBooks, middleware.AuthMiddleware)
 
@@ -62,7 +63,7 @@ func main() {
 	orderGroup.POST("", orderHandler.CreateOrder)
 	orderGroup.POST("/payment", orderHandler.CreatePayment)
 	orderGroup.POST("/midtrans", orderHandler.PayMidtrans)
-	orderGroup.POST("/midtrans-status", orderHandler.UpdateStatusPayment)
+	orderGroup.PATCH("/midtrans-status", orderHandler.UpdateStatusPayment)
 
 	port := os.Getenv("PORT")
 	if port == "" {

@@ -73,6 +73,7 @@ func (r *orderRepository) CreatePayments(user_id int, order_id int) (model.Payme
 	p.Order_id = order_id
 	p.Amount = rent_cost
 	p.Status = "paid"
+	p.User_id = user_id
 
 	err = r.db.Create(&p).Error
 
@@ -89,6 +90,7 @@ func (r *orderRepository) PaymentMidtrans(user_id int, m dto.MidtransReq) (model
 	p.Order_id = m.Order_id
 	p.Amount = m.Amount
 	p.Status = "pending"
+	p.User_id = user_id
 
 	err := r.db.Where("user_id=?", user_id).First(&u).Error
 	if err != nil {

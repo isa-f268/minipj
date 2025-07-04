@@ -11,6 +11,7 @@ type UserService interface {
 	Login(model dto.LoginReq) (string, error)
 	TopUp(id int, balance dto.TopUpReq) (dto.TopUpResp, error)
 	GetBook() ([]model.Books, error)
+	GetPaymentDetails(user_id int) ([]model.Payments, error)
 }
 
 type userService struct {
@@ -33,4 +34,8 @@ func (r *userService) TopUp(id int, balance dto.TopUpReq) (dto.TopUpResp, error)
 }
 func (r *userService) GetBook() ([]model.Books, error) {
 	return r.repo.GetBook()
+}
+
+func (r *userService) GetPaymentDetails(user_id int) ([]model.Payments, error) {
+	return r.repo.GetPaymentDetails(user_id)
 }

@@ -15,6 +15,7 @@ type UserRepository interface {
 	Login(model dto.LoginReq) (string, error)
 	TopUp(id int, balance dto.TopUpReq) (dto.TopUpResp, error)
 	GetBook() ([]model.Books, error)
+	GetPaymentDetails(user_id int) ([]model.Payments, error)
 }
 
 type userRepository struct {
@@ -111,4 +112,12 @@ func (r *userRepository) GetBook() ([]model.Books, error) {
 	}
 
 	return b, err
+}
+
+func (r *userRepository) GetPaymentDetails(user_id int) ([]model.Payments, error) {
+	var p []model.Payments
+
+	err := r.db.Where("user_id=?", user_id).Find(&p).Error
+
+	return p, err
 }
